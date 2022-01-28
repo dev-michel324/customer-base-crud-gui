@@ -50,25 +50,38 @@ class Funcs(Database):
 
     def add_client(self):
         self.get_data()
+        def exist(name):
+            self.connect_db()
+            user = self.cursor.execute('''
+                SELECT EXISTS (SELECT name_client FROM clients WHERE name_client = '%s')
+            ''' % name)
+            test = self.cursor.fetchall()
+            self.disconnect_db()
+            return test[0][0]
+
+
         if not self.name == '' and not self.name.isspace():
-            if not self.telephone=='' and not self.telephone.isspace():
-                if len(self.telephone) == 11:
-                    if self.telephone.isdigit():
-                        self.connect_db()
-                        self.cursor.execute('''
-                            INSERT INTO clients(name_client, telephone, city)
-                            VALUES (?, ?, ?)''', (self.name, self.telephone, self.city))
-                        self.conn.commit();
-                        self.disconnect_db()
-                        messagebox.showinfo('Added', 'Client Added')
-                        self.select_list()
-                        self.clear_all()
+            if exist(self.name) == 0:
+                if not self.telephone=='' and not self.telephone.isspace():
+                    if len(self.telephone) == 11:
+                        if self.telephone.isdigit():
+                            self.connect_db()
+                            self.cursor.execute('''
+                                INSERT INTO clients(name_client, telephone, city)
+                                VALUES (?, ?, ?)''', (self.name, self.telephone, self.city))
+                            self.conn.commit();
+                            self.disconnect_db()
+                            messagebox.showinfo('Added', 'Client Added')
+                            self.select_list()
+                            self.clear_all()
+                        else:
+                            messagebox.showerror('Error', 'The telephone field can only contain digits (numbers)!')
                     else:
-                        messagebox.showerror('Error', 'The telephone field can only contain digits (numbers)!')
+                        messagebox.showerror('Error', 'The number of numbers in the telephone field is invalid!')
                 else:
-                    messagebox.showerror('Error', 'The number of numbers in the telephone field is invalid!')
+                    messagebox.showerror('Error', 'The telephone field is null!')
             else:
-                messagebox.showerror('Error', 'The telephone field is null!')
+                messagebox.showerror('Error', 'That name already exists!')
         else:
             messagebox.showerror('Error', 'The field name is null!')
 
